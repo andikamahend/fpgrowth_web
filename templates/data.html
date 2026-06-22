@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Transaksi - CRUD</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
+        .navbar { background-color: #0d6efd; color: white; padding: 15px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar h2 { margin: 0; font-size: 20px; font-weight: 600; }
+        .btn-back { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 4px; transition: 0.3s; }
+        .btn-back:hover { background: rgba(255,255,255,0.3); }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 30px; }
+        .alert { padding: 15px; background-color: #d1ecf1; color: #0c5460; margin-bottom: 20px; border-radius: 6px; border-left: 4px solid #17a2b8; }
+        
+        .table-wrapper { overflow-x: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; background-color: white; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e9ecef; }
+        th { background-color: #f8f9fa; color: #495057; font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
+        tr:hover { background-color: #f1f3f5; }
+        td { font-size: 14px; color: #555; }
+        
+        .aksi-container { display: flex; gap: 5px; }
+        .btn-hapus, .btn-edit { color: white; padding: 6px 12px; border: none; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-hapus { background: #dc3545; }
+        .btn-hapus:hover { background: #bb2d3b; }
+        .btn-edit { background: #ffc107; color: #000; }
+        .btn-edit:hover { background: #e0a800; }
+
+        .pagination-container { display: flex; justify-content: center; align-items: center; margin-top: 25px; gap: 15px; flex-wrap: wrap; }
+        .page-btn { padding: 10px 20px; border: 1px solid #dee2e6; text-decoration: none; color: #0d6efd; border-radius: 6px; font-weight: bold; transition: 0.3s; background: white; }
+        .page-btn:hover { background: #0d6efd; color: white; }
+        .page-form { display: flex; align-items: center; background: #f8f9fa; padding: 8px 15px; border-radius: 6px; border: 1px solid #dee2e6; }
+        .page-form input { width: 60px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 4px; margin: 0 10px; font-weight: bold; outline: none; }
+        .page-form button { padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-left: 10px;}
+        .page-form button:hover { background-color: #5c636a; }
+
+        /* MODAL POP-UP */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fff; margin: 5% auto; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
+        .close { position: absolute; right: 20px; top: 15px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: #333; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #444; font-size: 14px; }
+        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
+        .btn-simpan { background: #0d6efd; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px; }
+        .btn-simpan:hover { background: #0b5ed7; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>📋 Manajemen Database Transaksi</h2>
+        <a href="/" class="btn-back">⬅ Kembali ke Dashboard</a>
+    </div>
+
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            {% for message in messages %}
+              <div class="alert">ℹ️ {{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div class="card">
+            <h3 style="margin-top:0; color:#444; margin-bottom:5px;">Database Keseluruhan</h3>
+            <p style="color:#777; font-size:14px; margin-bottom:20px;">Menampilkan 100 baris data per halaman secara urut (ASC).</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="8%">ID</th>
+                            <th width="15%">Transaction ID</th>
+                            <th width="15%">Customer ID</th>
+                            <th width="42%">Products</th>
+                            <th width="10%">Tanggal</th>
+                            <th width="10%">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in data_transaksi %}
+                        <tr>
+                            <td><b>{{ row.id }}</b></td>
+                            <td>{{ row.id_transaksi }}</td>
+                            <td>{{ row.id_customer }}</td>
+                            <td>{{ row.produk }}</td>
+                            <td>{{ row.tanggal }}</td>
+                            <td>
+                                <div class="aksi-container">
+                                    <button class="btn-edit" 
+                                            data-id="{{ row.id }}" 
+                                            data-trx="{{ row.id_transaksi | e }}" 
+                                            data-cust="{{ row.id_customer | e }}" 
+                                            data-prod="{{ row.produk | e }}" 
+                                            data-tgl="{{ row.tanggal }}" 
+                                            onclick="bukaModalEdit(this)">✏️ Edit</button>
+                                            
+                                    <a href="/hapus/{{ row.id }}" class="btn-hapus" onclick="return confirm('Yakin ingin menghapus transaksi ini?');">🗑️ Hapus</a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 30px;">Belum ada data di database.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pagination-container">
+                {% if page > 1 %}
+                    <a href="/data?page={{ page - 1 }}" class="page-btn">« Sebelumnya</a>
+                {% endif %}
+                
+                <form action="/data" method="GET" class="page-form">
+                    <span style="font-size: 14px; color: #555;">Halaman</span>
+                    <input type="number" name="page" min="1" max="{{ total_pages }}" value="{{ page }}" required>
+                    <span style="font-size: 14px; color: #555;">dari <b>{{ total_pages }}</b></span>
+                    <button type="submit">Pergi</button>
+                </form>
+                
+                {% if page < total_pages %}
+                    <a href="/data?page={{ page + 1 }}" class="page-btn">Selanjutnya »</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEdit" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="tutupModalEdit()">&times;</span>
+            <h3 style="margin-top:0; color:#0d6efd; border-bottom: 1px solid #eee; padding-bottom: 10px;">✏️ Edit Data Transaksi</h3>
+            
+            <form action="/edit" method="POST">
+                <input type="hidden" name="id" id="edit_id">
+                
+                <div class="form-group">
+                    <label>Transaction ID:</label>
+                    <input type="text" name="id_transaksi" id="edit_id_transaksi" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Customer ID:</label>
+                    <input type="text" name="id_customer" id="edit_id_customer" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label>Products (Pisahkan dengan koma):</label>
+                    <textarea name="produk" id="edit_produk" class="form-control" rows="3" required></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Tanggal:</label>
+                    <input type="date" name="tanggal" id="edit_tanggal" class="form-control" required>
+                </div>
+                
+                <button type="submit" class="btn-simpan">💾 Simpan Perubahan</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function bukaModalEdit(tombol) {
+            // Menarik data murni dari atribut tombol secara otomatis
+            document.getElementById('edit_id').value = tombol.getAttribute('data-id');
+            document.getElementById('edit_id_transaksi').value = tombol.getAttribute('data-trx');
+            document.getElementById('edit_id_customer').value = tombol.getAttribute('data-cust');
+            document.getElementById('edit_produk').value = tombol.getAttribute('data-prod');
+            document.getElementById('edit_tanggal').value = tombol.getAttribute('data-tgl');
+            
+            document.getElementById('modalEdit').style.display = 'block';
+        }
+
+        function tutupModalEdit() {
+            document.getElementById('modalEdit').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            var modal = document.getElementById('modalEdit');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>

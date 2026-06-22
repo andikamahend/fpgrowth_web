@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hasil Evaluasi FP-Growth</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
+        
+        .navbar { background-color: #198754; color: white; padding: 15px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar h2 { margin: 0; font-size: 20px; font-weight: 600; }
+        .btn-back { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 4px; transition: 0.3s; }
+        .btn-back:hover { background: rgba(255,255,255,0.3); }
+
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .card { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 30px; border-top: 4px solid #198754; }
+        .card h3 { margin-top: 0; color: #198754; font-size: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* Desain Graph Container */
+        #mynetwork { width: 100%; height: 600px; border: 1px solid #e0e0e0; background-color: #fafafa; border-radius: 8px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
+        
+        /* Desain Tabel Hasil */
+        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #e9ecef; }
+        table { width: 100%; border-collapse: collapse; background-color: white; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e9ecef; font-size: 14px; }
+        th { background-color: #f8f9fa; color: #495057; font-weight: 600; text-transform: uppercase; font-size: 13px; }
+        tr:hover { background-color: #f1f3f5; }
+        td b { color: #0d6efd; }
+        
+        .badge-metric { background-color: #e9ecef; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; color: #444; }
+        .desc-text { font-style: italic; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h2>📊 Laporan Evaluasi FP-Growth ({{ tgl_mulai }} s/d {{ tgl_akhir }})</h2>
+        <a href="/" class="btn-back">⬅ Kembali ke Dashboard</a>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <h3>🌳 Struktur Pola (Hierarchical FP-Tree)</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Membentuk struktur pohon berdasarkan frekuensi produk yang dibeli. Produk pada urutan teratas (mendekati Root) adalah produk yang paling sering muncul dalam seluruh transaksi.</p>
+            <div id="mynetwork"></div>
+        </div>
+
+        <div class="card" style="border-top-color: #0d6efd;">
+            <h3 style="color: #0d6efd;">📑 Tabel Association Rules (Rekomendasi Bisnis)</h3>
+            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Daftar aturan asosiasi yang lolos batas minimal: <b>Support 1%</b> & <b>Confidence 50%</b>.</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="5%">No</th>
+                            <th width="18%">Jika pelanggan beli... (Antecedents)</th>
+                            <th width="18%">...maka akan beli (Consequents)</th>
+                            <th width="8%">Support</th>
+                            <th width="10%">Confidence</th>
+                            <th width="8%">Lift Ratio</th>
+                            <th width="33%">Interpretasi & Rekomendasi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td><b>{{ rule.antecedents }}</b></td>
+                            <td><b style="color: #198754;">{{ rule.consequents }}</b></td>
+                            <td><span class="badge-metric">{{ rule.support }}</span></td>
+                            <td><span class="badge-metric" style="background:#d1e7dd; color:#0f5132;">{{ rule.confidence }}</span></td>
+                            <td><span class="badge-metric">{{ rule.lift }}</span></td>
+                            <td class="desc-text">{{ rule.deskripsi }}</td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 30px;">Tidak ada aturan asosiasi yang terbentuk pada rentang tanggal ini. Coba perkecil parameter batas atau perluas tanggal.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/json" id="nodes-data">{{ nodes | safe }}</script>
+    <script type="application/json" id="edges-data">{{ edges | safe }}</script>
+
+    <script type="text/javascript">
+        if (typeof vis === 'undefined') {
+            document.getElementById('mynetwork').innerHTML = "<p style='color:red; padding:20px; font-weight:bold;'>Error: Library Vis.js gagal dimuat. Pastikan internet Anda aktif.</p>";
+        } else {
+            var nodesData = JSON.parse(document.getElementById('nodes-data').textContent);
+            var edgesData = JSON.parse(document.getElementById('edges-data').textContent);
+
+            var nodes = new vis.DataSet(nodesData);
+            var edges = new vis.DataSet(edgesData);
+
+            var container = document.getElementById('mynetwork');
+            var data = { nodes: nodes, edges: edges };
+            
+            var options = {
+                layout: {
+                    hierarchical: {
+                        direction: "UD", 
+                        sortMethod: "directed",
+                        levelSeparation: 90, 
+                        nodeSpacing: 150     
+                    }
+                },
+                edges: {
+                    arrows: 'to', 
+                    color: '#adb5bd',
+                    smooth: {
+                        type: 'cubicBezier',
+                        forceDirection: 'vertical',
+                        roundness: 0.4
+                    }
+                },
+                nodes: {
+                    borderWidth: 2,
+                    shadow: true,
+                    font: { size: 14 }
+                },
+                physics: { enabled: false },
+                interaction: {
+                    hover: true,
+                    navigationButtons: true,
+                    keyboard: true
+                }
+            };
+            var network = new vis.Network(container, data, options);
+        }
+    </script>
+
+</body>
+</html>
