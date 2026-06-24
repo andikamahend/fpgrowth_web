@@ -117,17 +117,33 @@ def upload_file():
             
             conn = get_db_connection()
             cursor = conn.cursor()
-            cursor.execute("TRUNCATE TABLE transaksi")
             
+            # 1. HAPUS atau BERI KOMENTAR pada baris ini agar data lama tidak terhapus
+            # cursor.execute("TRUNCATE TABLE transaksi")
+            
+            # 2. Ambil semua id_transaksi yang sudah ada di database
+            cursor.execute("SELECT id_transaksi FROM transaksi")
+            # Gunakan struktur 'set' agar pencarian data jauh lebih cepat
+            existing_ids = set([row[0] for row in cursor.fetchall()])
+            
+            # 3. Lakukan iterasi untuk menyimpan data
             for i, row in df.iterrows():
-                sql = "INSERT INTO transaksi (id_transaksi, id_customer, produk, tanggal) VALUES (%s, %s, %s, %s)"
-                val = (str(row['TransactionID']), str(row['CustomerID']), str(row['Products']), str(row['Timestamp']))
-                cursor.execute(sql, val)
+                trans_id = str(row['TransactionID'])
+                
+                # Cek apakah ID Transaksi belum ada di dalam database
+                if trans_id not in existing_ids:
+                    sql = "INSERT INTO transaksi (id_transaksi, id_customer, produk, tanggal) VALUES (%s, %s, %s, %s)"
+                    val = (trans_id, str(row['CustomerID']), str(row['Products']), str(row['Timestamp']))
+                    cursor.execute(sql, val)
+                    
+                    # Tambahkan ID baru ini ke dalam set existing_ids untuk mencegah
+                    # duplikat jika di dalam file CSV itu sendiri ada ID yang dobel
+                    existing_ids.add(trans_id)
             
             conn.commit()
             cursor.close()
             conn.close()
-            flash("Data CSV berhasil diunggah ke Database MySQL!")
+            flash("Data CSV baru berhasil ditambahkan tanpa menduplikat data lama!")
         except Exception as e:
             flash(f"Terjadi kesalahan: {e}")
     return redirect('/')
@@ -153,12 +169,12 @@ def proses_fpgrowth():
     te_ary = te.fit(transactions).transform(transactions)
     df_fp = pd.DataFrame(te_ary, columns=te.columns_)
     
-    frequent_itemsets = fpgrowth(df_fp, min_support=0.01, use_colnames=True)
+    frequent_itemsets = fpgrowth(df_fp, min_support=0.06, use_colnames=True)
     if frequent_itemsets.empty:
-        flash("Tidak ditemukan pola dengan min support 1%.")
+        flash("Tidak ditemukan pola dengan min support 6%.")
         return redirect('/')
 
-    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.5)
+    rules = association_rules(frequent_itemsets, metric="confidence", min_threshold=0.4)
     
     hasil_aturan = []
     for idx, row in rules.iterrows():
@@ -171,14 +187,20 @@ def proses_fpgrowth():
         deskripsi = f"Jika pelanggan membeli {ant}, ada kemungkinan {persen_conf}% membeli {con}."
         hasil_aturan.append({'antecedents': ant, 'consequents': con, 'support': sup, 'confidence': conf, 'lift': lift, 'deskripsi': deskripsi})
 
-    # 2. LOGIKA FP-TREE
+    # 2. LOGIKA FP-TREE & HEADER TABLE
     item_counts = {}
     for t in transactions:
         for item in t:
             item_counts[item] = item_counts.get(item, 0) + 1
             
-    min_sup_count = len(transactions) * 0.01
+    min_sup_count = len(transactions) * 0.03
     frequent_items = {k: v for k, v in item_counts.items() if v >= min_sup_count}
+
+    # --- TAMBAHAN: PROSES HEADER TABLE ---
+    # Mengurutkan frequent items secara descending berdasarkan jumlah kemunculan
+    sorted_header = sorted(frequent_items.items(), key=lambda x: x[1], reverse=True)
+    header_table = [{'item': k, 'count': v} for k, v in sorted_header]
+    # --------------------------------------
 
     class FPNode:
         def __init__(self, name):
@@ -232,8 +254,12 @@ def proses_fpgrowth():
     build_vis_tree(root)
 
     return render_template('hasil.html', 
-                           rules=hasil_aturan, nodes=json.dumps(tree_nodes), 
-                           edges=json.dumps(tree_edges), tgl_mulai=tgl_mulai, tgl_akhir=tgl_akhir)
+                           rules=hasil_aturan, 
+                           nodes=json.dumps(tree_nodes), 
+                           edges=json.dumps(tree_edges), 
+                           header_table=header_table,  # <-- Variabel baru dikirim ke HTML
+                           tgl_mulai=tgl_mulai, 
+                           tgl_akhir=tgl_akhir)
 
 if __name__ == '__main__':
     app.run(debug=True)

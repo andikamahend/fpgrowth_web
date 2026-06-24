@@ -4,79 +4,163 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hasil Evaluasi FP-Growth</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
-        
-        .navbar { background-color: #198754; color: white; padding: 15px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .navbar h2 { margin: 0; font-size: 20px; font-weight: 600; }
-        .btn-back { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 4px; transition: 0.3s; }
-        .btn-back:hover { background: rgba(255,255,255,0.3); }
+        :root {
+            --bg-base: #0b1121;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --accent-1: #0ea5e9;
+            --accent-2: #8b5cf6;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
 
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .card { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 30px; border-top: 4px solid #198754; }
-        .card h3 { margin-top: 0; color: #198754; font-size: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        body { 
+            font-family: 'Inter', sans-serif; background-color: var(--bg-base); 
+            background-image: radial-gradient(circle at top right, rgba(139, 92, 246, 0.05), transparent 50%);
+            color: var(--text-main); margin: 0; padding: 0; min-height: 100vh;
+        }
         
-        /* Desain Graph Container */
-        #mynetwork { width: 100%; height: 600px; border: 1px solid #e0e0e0; background-color: #fafafa; border-radius: 8px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
+        .navbar { 
+            background: rgba(15, 23, 42, 0.8); padding: 20px 40px; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; backdrop-filter: blur(10px);
+        }
+        .navbar h2 { margin: 0; font-size: 18px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 10px; }
+        .btn-back { 
+            color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 14px;
+            padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 6px; 
+            transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.3); }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         
-        /* Desain Tabel Hasil */
-        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid #e9ecef; }
-        table { width: 100%; border-collapse: collapse; background-color: white; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e9ecef; font-size: 14px; }
-        th { background-color: #f8f9fa; color: #495057; font-weight: 600; text-transform: uppercase; font-size: 13px; }
-        tr:hover { background-color: #f1f3f5; }
-        td b { color: #0d6efd; }
+        .glass-card { 
+            background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);
+            padding: 30px; margin-bottom: 30px; backdrop-filter: blur(12px); position: relative; overflow: hidden;
+        }
+        .glass-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(to right, var(--accent-color), transparent); opacity: 0.8;
+        }
         
-        .badge-metric { background-color: #e9ecef; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 13px; color: #444; }
-        .desc-text { font-style: italic; color: #555; }
+        .glass-card h3 { margin-top: 0; color: white; font-size: 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;}
+        .glass-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; line-height: 1.6; }
+        
+        /* Desain Graph Container Gelap */
+        #mynetwork { 
+            width: 100%; height: 600px; background-color: #0f172a; 
+            border-radius: 8px; border: 1px solid var(--border-color);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.5);
+        }
+        
+        /* Desain Tabel Analitik */
+        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; background-color: transparent; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        th { background-color: rgba(0,0,0,0.2); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;}
+        tr { transition: background-color 0.2s ease; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+        
+        /* Badge Metrik Mode Gelap */
+        .badge-metric { background-color: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 12px; border: 1px solid rgba(255,255,255,0.1); color: #e2e8f0; }
+        .badge-success { background-color: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.3); color: #34d399; }
+        .badge-warning { background-color: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fbbf24; }
+        
+        .desc-text { font-style: italic; color: var(--text-muted); }
+        .highlight-text { color: var(--accent-1); font-weight: 600; }
+        .highlight-success { color: var(--accent-success); font-weight: 600; }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <h2>📊 Laporan Evaluasi FP-Growth ({{ tgl_mulai }} s/d {{ tgl_akhir }})</h2>
-        <a href="/" class="btn-back">⬅ Kembali ke Dashboard</a>
+        <h2><i class="fa-solid fa-chart-line" style="color: var(--accent-1);"></i> Analysis Report: {{ tgl_mulai }} to {{ tgl_akhir }}</h2>
+        <a href="/" class="btn-back"><i class="fa-solid fa-arrow-left"></i> End Session</a>
     </div>
 
     <div class="container">
-        <div class="card">
-            <h3>🌳 Struktur Pola (Hierarchical FP-Tree)</h3>
-            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Membentuk struktur pohon berdasarkan frekuensi produk yang dibeli. Produk pada urutan teratas (mendekati Root) adalah produk yang paling sering muncul dalam seluruh transaksi.</p>
+        
+        <div class="glass-card" style="--accent-color: var(--accent-2);">
+            <h3><i class="fa-solid fa-network-wired" style="color: var(--accent-2);"></i> Hierarchical Pattern Structure (FP-Tree)</h3>
+            <p>Visualisasi struktur pohon (Tree Node) berdasarkan frekuensi itemset. Node teratas merepresentasikan Root dan frekuensi absolut tertinggi.</p>
             <div id="mynetwork"></div>
         </div>
 
-        <div class="card" style="border-top-color: #0d6efd;">
-            <h3 style="color: #0d6efd;">📑 Tabel Association Rules (Rekomendasi Bisnis)</h3>
-            <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Daftar aturan asosiasi yang lolos batas minimal: <b>Support 1%</b> & <b>Confidence 50%</b>.</p>
+        <div class="glass-card" style="--accent-color: var(--accent-warning);">
+            <h3><i class="fa-solid fa-list-ol" style="color: var(--accent-warning);"></i> Frequent Items Header Table</h3>
+            <p>Daftar item tunggal yang berhasil memenuhi kriteria ambang batas <b>Min. Support (1%)</b>. Data ini menjadi fondasi awal dari FP-Tree.</p>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="10%">Rank</th>
+                            <th width="60%">Item Identification</th>
+                            <th width="30%">Absolute Frequency</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in header_table %}
+                        <tr>
+                            <td><span style="color: var(--text-muted);">#{{ loop.index }}</span></td>
+                            <td><span class="highlight-text">{{ row.item }}</span></td>
+                            <td><span class="badge-metric badge-warning">{{ row.count }} Instances</span></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fa-solid fa-triangle-exclamation" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                                Insufficient Data. Tidak ada item yang lolos kriteria minimum support.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass-card" style="--accent-color: var(--accent-1);">
+            <h3><i class="fa-solid fa-lightbulb" style="color: var(--accent-1);"></i> Extracted Association Rules</h3>
+            <p>Kumpulan aturan asosiasi (If-Then) yang memuat probabilitas hubungan antar produk dengan <b>Min. Confidence 50%</b>.</p>
             
             <div class="table-wrapper">
                 <table>
                     <thead>
                         <tr>
                             <th width="5%">No</th>
-                            <th width="18%">Jika pelanggan beli... (Antecedents)</th>
-                            <th width="18%">...maka akan beli (Consequents)</th>
+                            <th width="18%">Antecedents (If)</th>
+                            <th width="18%">Consequents (Then)</th>
                             <th width="8%">Support</th>
                             <th width="10%">Confidence</th>
                             <th width="8%">Lift Ratio</th>
-                            <th width="33%">Interpretasi & Rekomendasi</th>
+                            <th width="33%">Business Interpretation</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for rule in rules %}
                         <tr>
-                            <td>{{ loop.index }}</td>
-                            <td><b>{{ rule.antecedents }}</b></td>
-                            <td><b style="color: #198754;">{{ rule.consequents }}</b></td>
+                            <td><span style="color: var(--text-muted);">{{ loop.index }}</span></td>
+                            <td><span class="highlight-text">{{ rule.antecedents }}</span></td>
+                            <td><span class="highlight-success">{{ rule.consequents }}</span></td>
                             <td><span class="badge-metric">{{ rule.support }}</span></td>
-                            <td><span class="badge-metric" style="background:#d1e7dd; color:#0f5132;">{{ rule.confidence }}</span></td>
+                            <td><span class="badge-metric badge-success">{{ rule.confidence }}</span></td>
                             <td><span class="badge-metric">{{ rule.lift }}</span></td>
                             <td class="desc-text">{{ rule.deskripsi }}</td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 30px;">Tidak ada aturan asosiasi yang terbentuk pada rentang tanggal ini. Coba perkecil parameter batas atau perluas tanggal.</td>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fa-solid fa-link-slash" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                                No valid rules detected. Silakan perkecil threshold atau perlebar rentang waktu dataset.
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -90,7 +174,7 @@
 
     <script type="text/javascript">
         if (typeof vis === 'undefined') {
-            document.getElementById('mynetwork').innerHTML = "<p style='color:red; padding:20px; font-weight:bold;'>Error: Library Vis.js gagal dimuat. Pastikan internet Anda aktif.</p>";
+            document.getElementById('mynetwork').innerHTML = "<div style='color:#ef4444; padding:20px; font-weight:500; display:flex; align-items:center; gap:10px;'><i class='fa-solid fa-bug'></i> Module Vis.js failed to load. Check connection.</div>";
         } else {
             var nodesData = JSON.parse(document.getElementById('nodes-data').textContent);
             var edgesData = JSON.parse(document.getElementById('edges-data').textContent);
@@ -112,7 +196,7 @@
                 },
                 edges: {
                     arrows: 'to', 
-                    color: '#adb5bd',
+                    color: 'rgba(255, 255, 255, 0.2)', // Warna garis disesuaikan untuk dark mode
                     smooth: {
                         type: 'cubicBezier',
                         forceDirection: 'vertical',
@@ -120,15 +204,13 @@
                     }
                 },
                 nodes: {
-                    borderWidth: 2,
-                    shadow: true,
-                    font: { size: 14 }
+                    borderWidth: 1,
+                    shadow: { enabled: true, color: 'rgba(0,0,0,0.5)', size: 10 },
+                    font: { size: 14, color: '#ffffff' } // Font putih agar terbaca di tema gelap
                 },
                 physics: { enabled: false },
                 interaction: {
-                    hover: true,
-                    navigationButtons: true,
-                    keyboard: true
+                    hover: true, navigationButtons: true, keyboard: true
                 }
             };
             var network = new vis.Network(container, data, options);

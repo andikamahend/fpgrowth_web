@@ -3,93 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Web Data Mining (FP-Growth)</title>
+    <title>FP-Growth Analytics Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        /* Desain Global */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; line-height: 1.6; }
+        :root {
+            --bg-base: #0b1121;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --accent-1: #0ea5e9; /* Light Blue */
+            --accent-2: #8b5cf6; /* Violet */
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-base); 
+            background-image: radial-gradient(circle at top right, rgba(14, 165, 233, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(139, 92, 246, 0.1), transparent 40%);
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 0; 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
         
-        /* Navbar */
-        .navbar { background-color: #0d6efd; color: white; padding: 15px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; }
-        .navbar h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: 0.5px; }
+        .container { 
+            width: 100%;
+            max-width: 1000px; 
+            padding: 60px 20px; 
+            box-sizing: border-box;
+        }
+
+        /* Header / Judul dengan efek gradasi text */
+        .page-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+        .page-header h1 {
+            font-size: 36px;
+            font-weight: 800;
+            margin: 0;
+            background: linear-gradient(to right, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+        .page-header p {
+            color: var(--text-muted);
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        /* Layout Grid untuk Card */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        @media (max-width: 768px) {
+            .dashboard-grid { grid-template-columns: 1fr; }
+        }
         
-        /* Kontainer Utama */
-        .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+        /* Desain Card Glassmorphism */
+        .glass-card { 
+            background: var(--card-bg); 
+            border-radius: 16px; 
+            border: 1px solid var(--border-color);
+            padding: 35px; 
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(to right, var(--accent-1), var(--accent-2));
+            opacity: 0.5;
+        }
+
+        .glass-card h3 { 
+            margin-top: 0; 
+            font-size: 18px; 
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #fff;
+            margin-bottom: 15px; 
+            font-weight: 700;
+        }
+        .glass-card h3 i { color: var(--accent-1); }
+        .glass-card p { color: var(--text-muted); margin-bottom: 25px; font-size: 14px; line-height: 1.6; }
         
-        /* Kartu (Card) */
-        .card { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 30px; border-top: 4px solid #0d6efd; }
-        .card h3 { color: #0d6efd; margin-top: 0; font-size: 20px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .card p { color: #555; margin-bottom: 20px; font-size: 15px; }
-        
-        /* Input & Form */
+        /* Form Inputs */
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #444; }
-        .form-control { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 14px; transition: border-color 0.3s; }
-        .form-control:focus { border-color: #0d6efd; outline: none; }
-        .input-file { border: 1px dashed #ccc; padding: 20px; text-align: center; background-color: #f8f9fa; border-radius: 6px; cursor: pointer; display: block; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: #cbd5e1; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;}
+        .form-control { 
+            width: 100%; padding: 14px; 
+            background: rgba(15, 23, 42, 0.6); 
+            border: 1px solid var(--border-color); 
+            border-radius: 8px; box-sizing: border-box; 
+            color: white; font-size: 14px; font-family: inherit;
+            transition: all 0.3s ease; 
+        }
+        .form-control:focus { border-color: var(--accent-1); outline: none; box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.15); }
         
-        /* Tombol */
-        .btn { display: inline-block; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 15px; text-align: center; text-decoration: none; transition: all 0.3s ease; }
-        .btn-primary { background-color: #0d6efd; color: white; box-shadow: 0 4px 6px rgba(13, 110, 253, 0.2); }
-        .btn-primary:hover { background-color: #0b5ed7; transform: translateY(-2px); box-shadow: 0 6px 8px rgba(13, 110, 253, 0.3); }
-        .btn-success { background-color: #198754; color: white; box-shadow: 0 4px 6px rgba(25, 135, 84, 0.2); }
-        .btn-success:hover { background-color: #157347; transform: translateY(-2px); }
-        .btn-outline { background-color: transparent; border: 2px solid #0d6efd; color: #0d6efd; }
-        .btn-outline:hover { background-color: #0d6efd; color: white; }
+        .input-file { 
+            border: 2px dashed rgba(255, 255, 255, 0.2); padding: 30px 20px; 
+            text-align: center; background-color: rgba(0,0,0,0.2); 
+            border-radius: 8px; cursor: pointer; display: block; color: var(--text-muted);
+            transition: all 0.3s ease; 
+        }
+        .input-file:hover { border-color: var(--accent-1); color: white; background-color: rgba(14, 165, 233, 0.05); }
+        
+        /* Tombol Modern */
+        .action-group { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+        .btn { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
+            padding: 14px 24px; border: none; border-radius: 8px; cursor: pointer; 
+            font-weight: 600; font-size: 14px; text-decoration: none; 
+            transition: all 0.3s ease; font-family: inherit; flex: 1;
+        }
+        .btn-gradient { 
+            background: linear-gradient(135deg, var(--accent-1), #0284c7); 
+            color: white; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3); 
+        }
+        .btn-gradient:hover { box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4); transform: translateY(-2px); filter: brightness(1.1); }
+        
+        .btn-outline { 
+            background-color: transparent; border: 1px solid rgba(255,255,255,0.2); color: var(--text-main); 
+        }
+        .btn-outline:hover { background-color: rgba(255,255,255,0.05); border-color: white; }
         
         /* Notifikasi */
-        .alert { padding: 15px 20px; background-color: #d1ecf1; color: #0c5460; margin-bottom: 25px; border-radius: 6px; border-left: 4px solid #17a2b8; font-weight: 500; }
-        
-        /* Grid untuk Form Tanggal */
-        .date-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+        .alert { 
+            padding: 16px 20px; background-color: rgba(14, 165, 233, 0.1); color: #bae6fd; 
+            margin-bottom: 30px; border-radius: 8px; border: 1px solid rgba(14, 165, 233, 0.2);
+            font-weight: 500; display: flex; align-items: center; gap: 12px; font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="navbar">
-        <h2>🛒 Sistem Analisis Keranjang Belanja (MBA)</h2>
-    </div>
-
     <div class="container">
+        
+        <div class="page-header">
+            <h1>MBA Engine Server</h1>
+            <p>Market Basket Analysis via FP-Growth Algorithm</p>
+        </div>
+
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             {% for message in messages %}
-              <div class="alert">ℹ️ {{ message }}</div>
+              <div class="alert"><i class="fa-solid fa-terminal"></i> {{ message }}</div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
-        <div class="card">
-            <h3>📂 1. Manajemen Data Transaksi</h3>
-            <p>Unggah file dataset produk Anda (*.csv*) dengan *delimiter* titik koma (;) ke dalam database server.</p>
+        <div class="dashboard-grid">
             
-            <form action="/upload" method="POST" enctype="multipart/form-data">
-                <div class="form-group">
-                    <input type="file" name="file" accept=".csv" required class="input-file">
-                </div>
-                <button type="submit" class="btn btn-success">Upload & Simpan Data</button>
-                <a href="/data" class="btn btn-outline" style="margin-left: 10px;">Lihat Tabel Data (CRUD)</a>
-            </form>
-        </div>
+            <div class="glass-card">
+                <h3><i class="fa-solid fa-database"></i> Source Data</h3>
+                <p>Sinkronisasi dataset transaksi (.csv). Pastikan format data menggunakan delimiter titik koma untuk integritas parsing.</p>
+                
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <input type="file" name="file" accept=".csv" required class="form-control input-file">
+                    </div>
+                    <div class="action-group">
+                        <button type="submit" class="btn btn-outline"><i class="fa-solid fa-cloud-arrow-up"></i> Mount CSV</button>
+                        <a href="/data" class="btn btn-outline"><i class="fa-solid fa-table"></i> Data Table</a>
+                    </div>
+                </form>
+            </div>
 
-        <div class="card" style="border-top-color: #198754;">
-            <h3 style="color: #198754;">⚙️ 2. Proses Analisis FP-Growth</h3>
-            <p>Pilih rentang waktu transaksi yang ingin dianalisis. Parameter default sistem ditetapkan pada <b>Minimum Support 1%</b> dan <b>Minimum Confidence 50%</b>.</p>
-            
-            <form action="/proses" method="POST">
-                <div class="date-grid">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Mulai Tanggal:</label>
+            <div class="glass-card">
+                <h3><i class="fa-solid fa-network-wired"></i> FP-Growth Execution</h3>
+                <p>Tentukan rentang observasi *timestamp* untuk diproses. Parameter ditahan pada Min Support 1% & Confidence 50%.</p>
+                
+                <form action="/proses" method="POST">
+                    <div class="form-group">
+                        <label>Start Date</label>
                         <input type="date" name="tgl_mulai" class="form-control" required>
                     </div>
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label>Sampai Tanggal:</label>
+                    <div class="form-group">
+                        <label>End Date</label>
                         <input type="date" name="tgl_akhir" class="form-control" required>
                     </div>
-                </div>
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Tampilkan Hasil Asosiasi & Graph 🚀</button>
-            </form>
+                    <div class="action-group" style="margin-top: 32px;">
+                        <button type="submit" class="btn btn-gradient" id="btnProses">
+                            <i class="fa-solid fa-bolt"></i> Execute Engine
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
 
+    <script>
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function() {
+                const btn = this.querySelector('button[type="submit"]');
+                if (btn && btn.id === 'btnProses') {
+                    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Processing Nodes...';
+                    btn.style.opacity = '0.7';
+                    btn.style.cursor = 'not-allowed';
+                } else if (btn) {
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+                    btn.style.opacity = '0.7';
+                    btn.style.cursor = 'not-allowed';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

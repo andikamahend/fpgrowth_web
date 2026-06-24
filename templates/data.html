@@ -4,71 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Transaksi - CRUD</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; color: #333; margin: 0; padding: 0; }
-        .navbar { background-color: #0d6efd; color: white; padding: 15px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .navbar h2 { margin: 0; font-size: 20px; font-weight: 600; }
-        .btn-back { color: white; text-decoration: none; font-weight: bold; padding: 8px 15px; background: rgba(255,255,255,0.2); border-radius: 4px; transition: 0.3s; }
-        .btn-back:hover { background: rgba(255,255,255,0.3); }
+        :root {
+            --bg-base: #0b1121;
+            --card-bg: rgba(30, 41, 59, 0.6);
+            --accent-1: #0ea5e9;
+            --accent-2: #8b5cf6;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
 
-        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
-        .card { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); padding: 30px; margin-bottom: 30px; }
-        .alert { padding: 15px; background-color: #d1ecf1; color: #0c5460; margin-bottom: 20px; border-radius: 6px; border-left: 4px solid #17a2b8; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-base); 
+            background-image: radial-gradient(circle at top center, rgba(14, 165, 233, 0.05), transparent 50%);
+            color: var(--text-main); 
+            margin: 0; padding: 0; 
+            min-height: 100vh;
+        }
+
+        /* Navbar Modern */
+        .navbar { 
+            background: rgba(15, 23, 42, 0.8); 
+            padding: 20px 40px; 
+            border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; align-items: center; 
+            backdrop-filter: blur(10px);
+        }
+        .navbar h2 { margin: 0; font-size: 20px; font-weight: 600; color: #fff; }
+        .btn-back { 
+            color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 14px;
+            padding: 8px 16px; border: 1px solid var(--border-color); border-radius: 6px; 
+            transition: 0.3s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-back:hover { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.3); }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
         
-        .table-wrapper { overflow-x: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; background-color: white; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #e9ecef; }
-        th { background-color: #f8f9fa; color: #495057; font-weight: 600; text-transform: uppercase; font-size: 13px; letter-spacing: 0.5px; }
-        tr:hover { background-color: #f1f3f5; }
-        td { font-size: 14px; color: #555; }
+        .alert { padding: 15px; background-color: rgba(14, 165, 233, 0.1); color: #bae6fd; margin-bottom: 20px; border-radius: 8px; border: 1px solid rgba(14, 165, 233, 0.2); font-size: 14px; display: flex; align-items: center; gap: 10px; }
         
-        .aksi-container { display: flex; gap: 5px; }
-        .btn-hapus, .btn-edit { color: white; padding: 6px 12px; border: none; text-decoration: none; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-hapus { background: #dc3545; }
-        .btn-hapus:hover { background: #bb2d3b; }
-        .btn-edit { background: #ffc107; color: #000; }
-        .btn-edit:hover { background: #e0a800; }
+        /* Glass Card */
+        .glass-card { 
+            background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color);
+            padding: 30px; margin-bottom: 30px; backdrop-filter: blur(12px);
+        }
+        .glass-card h3 { margin-top:0; color: white; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;}
+        .glass-card p { color: var(--text-muted); font-size: 14px; margin-bottom: 25px; }
 
-        .pagination-container { display: flex; justify-content: center; align-items: center; margin-top: 25px; gap: 15px; flex-wrap: wrap; }
-        .page-btn { padding: 10px 20px; border: 1px solid #dee2e6; text-decoration: none; color: #0d6efd; border-radius: 6px; font-weight: bold; transition: 0.3s; background: white; }
-        .page-btn:hover { background: #0d6efd; color: white; }
-        .page-form { display: flex; align-items: center; background: #f8f9fa; padding: 8px 15px; border-radius: 6px; border: 1px solid #dee2e6; }
-        .page-form input { width: 60px; padding: 8px; text-align: center; border: 1px solid #ccc; border-radius: 4px; margin: 0 10px; font-weight: bold; outline: none; }
-        .page-form button { padding: 8px 15px; background-color: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-left: 10px;}
-        .page-form button:hover { background-color: #5c636a; }
+        /* Desain Tabel Gelap */
+        .table-wrapper { overflow-x: auto; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; background-color: transparent; }
+        th, td { padding: 16px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 14px; }
+        th { background-color: rgba(0,0,0,0.2); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        tr { transition: background-color 0.2s ease; }
+        tr:hover { background-color: rgba(255, 255, 255, 0.03); }
+        td { color: #e2e8f0; }
 
-        /* MODAL POP-UP */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
-        .modal-content { background-color: #fff; margin: 5% auto; padding: 30px; border-radius: 10px; width: 90%; max-width: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s; }
+        /* Tombol Aksi */
+        .aksi-container { display: flex; gap: 8px; }
+        .btn-aksi { 
+            color: white; padding: 6px 12px; border: none; text-decoration: none; 
+            border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.3s;
+            display: inline-flex; align-items: center; gap: 5px; font-family: inherit;
+        }
+        .btn-edit { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+        .btn-edit:hover { background: rgba(245, 158, 11, 0.3); }
+        .btn-hapus { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .btn-hapus:hover { background: rgba(239, 68, 68, 0.3); }
+
+        /* Pagination Modern */
+        .pagination-container { display: flex; justify-content: center; align-items: center; margin-top: 30px; gap: 15px; flex-wrap: wrap; }
+        .page-btn { padding: 8px 16px; border: 1px solid var(--border-color); text-decoration: none; color: var(--text-muted); border-radius: 6px; font-size: 14px; transition: 0.3s; background: rgba(0,0,0,0.2); }
+        .page-btn:hover { background: var(--accent-1); color: white; border-color: var(--accent-1); }
+        .page-form { display: flex; align-items: center; background: rgba(0,0,0,0.2); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border-color); gap: 10px; }
+        .page-form input { width: 50px; padding: 6px; text-align: center; border: 1px solid var(--border-color); background: rgba(15, 23, 42, 0.8); color: white; border-radius: 4px; font-weight: bold; outline: none; }
+        .page-form button { padding: 6px 12px; background-color: rgba(255,255,255,0.1); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; transition: 0.3s;}
+        .page-form button:hover { background-color: var(--accent-1); }
+
+        /* Modal Pop-up Glassmorphism */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7); backdrop-filter: blur(5px); }
+        .modal-content { 
+            background: #1e293b; margin: 5% auto; padding: 35px; border-radius: 12px; 
+            width: 90%; max-width: 500px; border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative; animation: fadeIn 0.3s; 
+        }
         @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
-        .close { position: absolute; right: 20px; top: 15px; color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover { color: #333; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #444; font-size: 14px; }
-        .form-control { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; font-family: inherit; }
-        .btn-simpan { background: #0d6efd; color: white; border: none; padding: 12px; width: 100%; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px; margin-top: 10px; }
-        .btn-simpan:hover { background: #0b5ed7; }
+        .close { position: absolute; right: 25px; top: 20px; color: var(--text-muted); font-size: 24px; cursor: pointer; transition: 0.2s;}
+        .close:hover { color: #fff; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-weight: 500; margin-bottom: 8px; color: #cbd5e1; font-size: 13px; }
+        .form-control { 
+            width: 100%; padding: 12px; background: rgba(15, 23, 42, 0.6); 
+            border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; 
+            color: white; font-size: 14px; font-family: inherit; transition: 0.3s;
+        }
+        .form-control:focus { border-color: var(--accent-1); outline: none; }
+        .btn-simpan { 
+            background: linear-gradient(135deg, var(--accent-1), #0284c7); color: white; border: none; 
+            padding: 14px; width: 100%; border-radius: 8px; font-weight: 600; cursor: pointer; 
+            font-size: 14px; margin-top: 10px; transition: 0.3s; display: flex; justify-content: center; gap: 8px; align-items: center;
+        }
+        .btn-simpan:hover { filter: brightness(1.1); transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
     <div class="navbar">
-        <h2>📋 Manajemen Database Transaksi</h2>
-        <a href="/" class="btn-back">⬅ Kembali ke Dashboard</a>
+        <h2><i class="fa-solid fa-server"></i> Server Database Management</h2>
+        <a href="/" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
     </div>
 
     <div class="container">
         {% with messages = get_flashed_messages() %}
           {% if messages %}
             {% for message in messages %}
-              <div class="alert">ℹ️ {{ message }}</div>
+              <div class="alert"><i class="fa-solid fa-terminal"></i> {{ message }}</div>
             {% endfor %}
           {% endif %}
         {% endwith %}
 
-        <div class="card">
-            <h3 style="margin-top:0; color:#444; margin-bottom:5px;">Database Keseluruhan</h3>
-            <p style="color:#777; font-size:14px; margin-bottom:20px;">Menampilkan 100 baris data per halaman secara urut (ASC).</p>
+        <div class="glass-card">
+            <h3><i class="fa-solid fa-table"></i> Transaction Records</h3>
+            <p>Menampilkan 100 baris data per halaman. Data diurutkan berdasarkan input terawal (ASC).</p>
             
             <div class="table-wrapper">
                 <table>
@@ -77,36 +140,39 @@
                             <th width="8%">ID</th>
                             <th width="15%">Transaction ID</th>
                             <th width="15%">Customer ID</th>
-                            <th width="42%">Products</th>
-                            <th width="10%">Tanggal</th>
-                            <th width="10%">Aksi</th>
+                            <th width="42%">Products Basket</th>
+                            <th width="10%">Date</th>
+                            <th width="10%">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for row in data_transaksi %}
                         <tr>
-                            <td><b>{{ row.id }}</b></td>
+                            <td><b style="color: var(--accent-1);">{{ row.id }}</b></td>
                             <td>{{ row.id_transaksi }}</td>
                             <td>{{ row.id_customer }}</td>
                             <td>{{ row.produk }}</td>
-                            <td>{{ row.tanggal }}</td>
+                            <td><span style="color: var(--text-muted); font-size: 13px;">{{ row.tanggal }}</span></td>
                             <td>
                                 <div class="aksi-container">
-                                    <button class="btn-edit" 
+                                    <button class="btn-aksi btn-edit" 
                                             data-id="{{ row.id }}" 
                                             data-trx="{{ row.id_transaksi | e }}" 
                                             data-cust="{{ row.id_customer | e }}" 
                                             data-prod="{{ row.produk | e }}" 
                                             data-tgl="{{ row.tanggal }}" 
-                                            onclick="bukaModalEdit(this)">✏️ Edit</button>
+                                            onclick="bukaModalEdit(this)"><i class="fa-solid fa-pen"></i></button>
                                             
-                                    <a href="/hapus/{{ row.id }}" class="btn-hapus" onclick="return confirm('Yakin ingin menghapus transaksi ini?');">🗑️ Hapus</a>
+                                    <a href="/hapus/{{ row.id }}" class="btn-aksi btn-hapus" onclick="return confirm('Yakin ingin menghapus record ini?');"><i class="fa-solid fa-trash"></i></a>
                                 </div>
                             </td>
                         </tr>
                         {% else %}
                         <tr>
-                            <td colspan="6" style="text-align: center; padding: 30px;">Belum ada data di database.</td>
+                            <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fa-solid fa-database" style="font-size: 24px; margin-bottom: 10px; display: block;"></i>
+                                Empty Database. Silakan unggah file CSV di dashboard utama.
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -115,18 +181,18 @@
 
             <div class="pagination-container">
                 {% if page > 1 %}
-                    <a href="/data?page={{ page - 1 }}" class="page-btn">« Sebelumnya</a>
+                    <a href="/data?page={{ page - 1 }}" class="page-btn"><i class="fa-solid fa-chevron-left"></i> Prev</a>
                 {% endif %}
                 
                 <form action="/data" method="GET" class="page-form">
-                    <span style="font-size: 14px; color: #555;">Halaman</span>
+                    <span style="font-size: 13px; color: var(--text-muted);">Page</span>
                     <input type="number" name="page" min="1" max="{{ total_pages }}" value="{{ page }}" required>
-                    <span style="font-size: 14px; color: #555;">dari <b>{{ total_pages }}</b></span>
-                    <button type="submit">Pergi</button>
+                    <span style="font-size: 13px; color: var(--text-muted);">of <b>{{ total_pages }}</b></span>
+                    <button type="submit">Go</button>
                 </form>
                 
                 {% if page < total_pages %}
-                    <a href="/data?page={{ page + 1 }}" class="page-btn">Selanjutnya »</a>
+                    <a href="/data?page={{ page + 1 }}" class="page-btn">Next <i class="fa-solid fa-chevron-right"></i></a>
                 {% endif %}
             </div>
         </div>
@@ -135,45 +201,45 @@
     <div id="modalEdit" class="modal">
         <div class="modal-content">
             <span class="close" onclick="tutupModalEdit()">&times;</span>
-            <h3 style="margin-top:0; color:#0d6efd; border-bottom: 1px solid #eee; padding-bottom: 10px;">✏️ Edit Data Transaksi</h3>
+            <h3 style="margin-top:0; color:white; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; font-size: 18px;">
+                <i class="fa-solid fa-pen-to-square" style="color: var(--accent-1);"></i> Edit Record
+            </h3>
             
-            <form action="/edit" method="POST">
+            <form action="/edit" method="POST" style="margin-top: 20px;">
                 <input type="hidden" name="id" id="edit_id">
                 
                 <div class="form-group">
-                    <label>Transaction ID:</label>
+                    <label>Transaction ID</label>
                     <input type="text" name="id_transaksi" id="edit_id_transaksi" class="form-control" required>
                 </div>
                 
                 <div class="form-group">
-                    <label>Customer ID:</label>
+                    <label>Customer ID</label>
                     <input type="text" name="id_customer" id="edit_id_customer" class="form-control" required>
                 </div>
                 
                 <div class="form-group">
-                    <label>Products (Pisahkan dengan koma):</label>
+                    <label>Products (Comma Separated)</label>
                     <textarea name="produk" id="edit_produk" class="form-control" rows="3" required></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label>Tanggal:</label>
+                    <label>Timestamp / Date</label>
                     <input type="date" name="tanggal" id="edit_tanggal" class="form-control" required>
                 </div>
                 
-                <button type="submit" class="btn-simpan">💾 Simpan Perubahan</button>
+                <button type="submit" class="btn-simpan"><i class="fa-solid fa-check"></i> Commit Changes</button>
             </form>
         </div>
     </div>
 
     <script>
         function bukaModalEdit(tombol) {
-            // Menarik data murni dari atribut tombol secara otomatis
             document.getElementById('edit_id').value = tombol.getAttribute('data-id');
             document.getElementById('edit_id_transaksi').value = tombol.getAttribute('data-trx');
             document.getElementById('edit_id_customer').value = tombol.getAttribute('data-cust');
             document.getElementById('edit_produk').value = tombol.getAttribute('data-prod');
             document.getElementById('edit_tanggal').value = tombol.getAttribute('data-tgl');
-            
             document.getElementById('modalEdit').style.display = 'block';
         }
 
@@ -188,6 +254,5 @@
             }
         }
     </script>
-
 </body>
 </html>
